@@ -140,7 +140,7 @@ void main() {
 	cout << "Welcome, stranger\n";
 	cout << "Send an empty message to stop the server\n";
 	cout << ">--------------------------------------<\n\n";
-	cout << "Please enter your id (using natural numbers): ";
+	cout << "Please enter your nickname: ";
 	string locID;
 	cin >> locID;
 	cin.ignore();
