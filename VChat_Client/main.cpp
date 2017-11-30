@@ -135,7 +135,7 @@ void main() {
 		return;
 	}
 	cout << ">--------------------------------------<\n";
-	cout << "VChat 1.0\n";
+	cout << "VChat 1.1\n";
 	cout << "\"A meaningful silence is always better than meaningless words\" - Anonymous\n\n";
 	cout << "Welcome, stranger\n";
 	cout << "Send an empty message to stop the server\n";
