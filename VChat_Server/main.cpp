@@ -197,17 +197,6 @@ void main(){
     cout << "Send an empty message to stop the server\n";
 	cout << ">--------------------------------------<\n\n";
 
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, 7);
-	//9 - 15, 7 colors
-	 //you can loop k higher to see more color choices
-	//for (int k = 1; k < 355; k++)
-	//{
-	//	// pick the colorattribute k you want
-	//	SetConsoleTextAttribute(hConsole, k);
-	//	cout << k << " I want to be nice today!" << endl;
-	//}
-
 	DWORD threadId;
 	CreateThread(NULL, NULL, ServerListenThread, NULL, NULL, &threadId);
 	
