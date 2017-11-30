@@ -14,6 +14,12 @@ void printError(string text, bool critical) {
 	}
 }
 
+void setFontColor(size_t c) {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, c);
+}
+
+
 unsigned long __stdcall MessageRecThread(void* pParam);
 
 ClientPack::ClientPack():connEstablished(false){
@@ -82,7 +88,19 @@ bool ClientPack::ReceiveMsg(){
 	if (recv(connection, message, 4096, 0) == -1)
 		return false;
 	cout << "\b\b";
-	cout << message << "\n> ";
+
+	string msg(message);
+	size_t pos1 = msg.find("$");
+	size_t pos2 = msg.find(": ");
+	size_t fontNum = stoi(msg.substr(pos2 + 2, pos1-pos2));
+	string name = msg.substr(0, pos2);
+	string text = msg.substr(pos1 + 1);
+	
+	setFontColor(fontNum);
+	cout << name;
+	setFontColor(7);
+	cout << ": " << text << endl;
+	cout << "> ";
 	return true;
 }
 

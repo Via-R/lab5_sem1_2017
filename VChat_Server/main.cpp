@@ -13,6 +13,12 @@ void printError(string text, bool critical) {
 	}
 }
 
+void setFontColor(size_t c) {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, c);
+}
+
+size_t getFontNumber(string text);
 unsigned long __stdcall ServerRecThread(void* pParam);
 
 void VChatServer::StartListening(){
@@ -33,10 +39,17 @@ void VChatServer::StartListening(){
 
 	cout << "\b\b";
 	string message = "#" + resID + " connected";
-	cout << "> " << message << endl << "> ";
+	cout << "> ";
+	setFontColor(12);
+	cout << message << endl;
+	setFontColor(7);
+	cout << "> ";
+	message = "12$" + message;
 	SendMessageToAll(message, "System");
-	if (currCliSocket != INVALID_SOCKET)
+	if (currCliSocket != INVALID_SOCKET) {
 		clientsList.push_back(make_pair(currCliSocket, resID));
+		cliColors.insert(make_pair(resID, getFontNumber(resID)));
+	}
 
 	DWORD threadId;
 	CreateThread(NULL, NULL, ServerRecThread, (void *)currCliSocket, NULL, &threadId);
@@ -90,7 +103,7 @@ VChatServer::~VChatServer() {
 bool VChatServer::SendMessageToAll(string text, string id = ""){
 	int locStatus = 0;
 	if(!id.size())
-		text = "Server: " + text;
+		text = "Server: 9$" + text;
 	else if (id == "System") {
 		text = "System: " + text;
 	}
@@ -123,9 +136,15 @@ bool VChatServer::RecClient(SOCKET cliSocket){
 		return false;
 	}
 	else {
+		string message(temp);
 		cout << "\b\b";
-		cout << "User #" << it->second << ": " << temp << "\n";
-		SendMessageToAll(temp, it->second);
+		setFontColor(cliColors[it->second]);
+		cout << "#" << it->second;
+		setFontColor(7);
+		cout << ": " << message << "\n";
+		message = to_string(cliColors[it->second]) + "$" + message;
+		//cout << message << endl;
+		SendMessageToAll(message, it->second);
 		cout << "> ";
 	}
 	return true;
@@ -146,6 +165,24 @@ unsigned long __stdcall ServerListenThread(void* pParam) {
 	return 0;
 }
 
+size_t getFontNumber(string text) {
+	hash<string> hash_fn;
+	size_t str_hash = hash_fn(text);
+	size_t temp = 0;
+	do {
+		temp = 0;
+		while (str_hash > 0) {
+			temp += str_hash % 10;
+			str_hash /= 10;
+		}
+		str_hash = temp;
+	} while (temp > 10);
+	temp += 5;
+	if (temp == 9 || temp == 12)
+		--temp;
+	return temp;
+}
+
 void main(){
 	if (!ServerEntity.IsConnected()) {
 		printError("Failed to initialise server socket", true);
@@ -160,7 +197,17 @@ void main(){
     cout << "Send an empty message to stop the server\n";
 	cout << ">--------------------------------------<\n\n";
 
-	
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, 7);
+	//9 - 15, 7 colors
+	 //you can loop k higher to see more color choices
+	//for (int k = 1; k < 355; k++)
+	//{
+	//	// pick the colorattribute k you want
+	//	SetConsoleTextAttribute(hConsole, k);
+	//	cout << k << " I want to be nice today!" << endl;
+	//}
+
 	DWORD threadId;
 	CreateThread(NULL, NULL, ServerListenThread, NULL, NULL, &threadId);
 	
