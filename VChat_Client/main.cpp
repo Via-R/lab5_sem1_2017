@@ -14,11 +14,13 @@ void printError(string text, bool critical) {
 	}
 }
 
+unsigned long __stdcall MessageRecThread(void* pParam);
+
 ClientPack::ClientPack():connEstablished(false){
 	cout << "Client starting...\n\n";
 }
 
-void ClientPack::ConnectToServer(string address, int port) {
+void ClientPack::ConnectToServer(string address, int port, string locID) {
 
 	serverIP = address;
 	serverPort = port;
@@ -60,13 +62,37 @@ void ClientPack::ConnectToServer(string address, int port) {
 		closesocket(connection);
 		return;
 	}
+	SendMsg(locID);
 	connEstablished = true;
-	cout << ">> Connected!\n";
 }
 
 ClientPack::~ClientPack() {
 	if (connEstablished)
 		closesocket(connection);
+}
+
+bool ClientPack::SendMsg(string text) {
+	if (send(connection, text.c_str(), text.size() + 1, 0) == -1)
+		return false;
+	return true;
+}
+
+bool ClientPack::ReceiveMsg(){
+	char message[4096];
+	if (recv(connection, message, 4096, 0) == -1)
+		return false;
+	cout << "\b\b";
+	cout << message << "\n> ";
+	return true;
+}
+
+
+unsigned long __stdcall MessageRecThread(void* pParam){
+	while (1) {
+		if (!ClientEntity.ReceiveMsg())
+			break;
+	}
+	return 0;
 }
 
 void main() {
@@ -96,18 +122,29 @@ void main() {
 	cout << "Welcome, stranger\n";
 	cout << "Send an empty message to stop the server\n";
 	cout << ">--------------------------------------<\n\n";
-
-	ClientEntity.ConnectToServer(serverAddress.c_str(), 10007);
+	cout << "Please enter your id (using natural numbers): ";
+	string locID;
+	cin >> locID;
+	cin.ignore();
+	ClientEntity.ConnectToServer(serverAddress.c_str(), 10007, locID);
 	if (!ClientEntity.IsConnected()){
 		printError("Unable to connect to the IP specified in server.ini", true);
 		return;
 	}
 
+	DWORD threadId;
+	CreateThread(NULL, NULL, MessageRecThread, NULL, NULL, &threadId);
+	cout << "> ";
 	while (gets_s(buf)){
 		if (strlen(buf) == 0) {
-			cout << "Client stop was initiated manually\n";
+			cout << "\nClient stop was initiated manually\n";
 			break;
 		}
+		if (!ClientEntity.SendMsg(buf)){
+			printError("Cannot connect to the server. Check whether server is running", false);
+			break;
+		}
+		cout << "> ";
 	}
 
 	cout << "Client stopped\n\n";

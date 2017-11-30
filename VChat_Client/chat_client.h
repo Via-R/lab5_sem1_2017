@@ -9,11 +9,13 @@ class ClientPack{
 public:
 	ClientPack();
 	~ClientPack();
-	void ConnectToServer(string, int); //connecting to the server
+	void ConnectToServer(string, int, string); // connecting to the server
+	bool SendMsg(string); // false if sending failed
+	bool ReceiveMsg(); // false if connection failed
 	bool IsConnected() { return connEstablished; }
 private:
-	bool connEstablished; //true - connected, false - not connected
+	bool connEstablished; // true - connected, false - not connected
 	string serverIP;
 	int serverPort;
-	SOCKET connection; //socket connected to server
+	SOCKET connection; // socket connected to server
 };

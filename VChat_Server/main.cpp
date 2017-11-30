@@ -1,5 +1,5 @@
 #include "chat_server.h"
-
+#include <algorithm>
 VChatServer ServerEntity;
 
 void printError(string text, bool critical) {
@@ -13,6 +13,8 @@ void printError(string text, bool critical) {
 	}
 }
 
+unsigned long __stdcall ServerRecThread(void* pParam);
+
 void VChatServer::StartListening(){
 	SOCKET currCliSocket;
 	sockaddr_in incoming;
@@ -20,9 +22,24 @@ void VChatServer::StartListening(){
 
 	currCliSocket = accept(receiver, (struct sockaddr*)&incoming, &incominglen);
 
+	char temp[4096];
+	int locStatus;
+	locStatus = recv(currCliSocket, temp, 4096, 0);
+	if (locStatus == -1) {
+		printError("Cannot get user's id", false);
+		return;
+	}
+	string resID(temp);
+
+	cout << "\b\b";
+	string message = "#" + resID + " connected";
+	cout << "> " << message << endl << "> ";
+	SendMessageToAll(message, "System");
 	if (currCliSocket != INVALID_SOCKET)
-		clientsList.push_back(currCliSocket);
-	cout << ">> Client connected!\n";
+		clientsList.push_back(make_pair(currCliSocket, resID));
+
+	DWORD threadId;
+	CreateThread(NULL, NULL, ServerRecThread, (void *)currCliSocket, NULL, &threadId);
 }
 
 VChatServer::VChatServer(){
@@ -68,6 +85,61 @@ VChatServer::~VChatServer() {
     WSACleanup();
 }
 
+
+
+bool VChatServer::SendMessageToAll(string text, string id = ""){
+	int locStatus = 0;
+	if(!id.size())
+		text = "Server: " + text;
+	else if (id == "System") {
+		text = "System: " + text;
+	}
+	else
+		text = "#" + id + ": " + text;
+	if(clientsList.size() == 0)
+		return true;
+
+	
+	for (auto it = clientsList.begin(); it != clientsList.end(); it++) {
+		if (id != "" && id == it->second)
+			continue;
+		locStatus = send(it->first, text.c_str(), text.size() + 1, 0);
+		if (locStatus == -1)
+			clientsList.remove(*it);
+	}
+	if(locStatus == -1)
+		return false;
+	return true;
+}
+
+bool VChatServer::RecClient(SOCKET cliSocket){
+	char temp[4096];
+	int locStatus;
+	auto it = find_if(clientsList.begin(), clientsList.end(), [=](const std::pair<SOCKET, string>& element) { return element.first == cliSocket; });
+
+	locStatus = recv(cliSocket, temp, 4096, 0);
+	if (locStatus == -1) {
+		clientsList.erase(it);
+		return false;
+	}
+	else {
+		cout << "\b\b";
+		cout << "User #" << it->second << ": " << temp << "\n";
+		SendMessageToAll(temp, it->second);
+		cout << "> ";
+	}
+	return true;
+}
+
+unsigned long __stdcall ServerRecThread(void* pParam) {
+	SOCKET cliSocket = (SOCKET)pParam;
+	while (1){
+		if (!ServerEntity.RecClient(cliSocket))
+			break;
+	}
+	return 0;
+}
+
 unsigned long __stdcall ServerListenThread(void* pParam) {
 	while (1)
 		ServerEntity.StartListening();
@@ -91,13 +163,20 @@ void main(){
 	
 	DWORD threadId;
 	CreateThread(NULL, NULL, ServerListenThread, NULL, NULL, &threadId);
-
+	
+	cout << "> ";
 	while(gets_s(buf)){
 		if (strlen(buf) == 0) {
-			cout << "Server stop was initiated manually\n";
+			cout << "\nServer stop was initiated manually\n";
 			break;
 		}
+		if(!ServerEntity.SendMessageToAll(buf)){
+			printError("Cannot connect to receivers", false);
+			break;
+		}
+		cout << "> ";
 	}
+
 	cout << "Server stopped\n\n";
 	system("pause");
 }
