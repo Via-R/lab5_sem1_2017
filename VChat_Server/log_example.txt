@@ -1,0 +1,63 @@
+Starting up server...
+
+>--------------------------------------<
+VChat 2.1
+"A meaningful silence is always better than meaningless words" - Anonymous
+
+Running locally on port 10007
+Send an empty message to stop the server
+>--------------------------------------<
+
+#dw connected
+#lulz connected
+#lotus connected
+#qutie connected
+> you can talk now
+#dw: hey u guyz
+#lulz: sup
+#lotus: nice 2 meet u
+#qutie: wazzup
+#qutie: nice place we've got here
+#lotus: surely
+#dw: so, how are you
+#lulz: its' ok
+#lulz: o shit
+#lulz: i have to go
+#lulz: see ya
+#lulz left the chat
+#linky connected
+#qutie: hey linky
+#linky: sup
+#lotus: wonderful color you got there
+#linky: thx m8
+> k guys
+> i gonna stop soon, so wrap up
+#lotus: k bye
+#lotus left the chat
+#linky: ciao
+#linky left the chat
+#qutie: bb
+#qutie left the chat
+#dw: dno
+#dw: just no
+#dw: i wont
+#dw: l i will
+#dw: lulz
+#dw: bb
+#dw left the chat
+#linky connected
+#linky: soo anybody here
+#linky: ?
+#linky: i see
+#linky left the chat
+#bot1 connected
+#bot2 connected
+#bot3 connected
+#bot4 connected
+> shutting down guyz
+>
+
+Server stop was initiated manually
+Server stopped
+
+Press any key to continue . . .

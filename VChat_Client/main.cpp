@@ -85,8 +85,9 @@ bool ClientPack::SendMsg(string text) {
 
 bool ClientPack::ReceiveMsg(){
 	char message[4096];
-	if (recv(connection, message, 4096, 0) == -1)
+	if (recv(connection, message, 4096, 0) == -1) {
 		return false;
+	}
 	cout << "\b\b";
 
 	string msg(message);
@@ -106,11 +107,18 @@ bool ClientPack::ReceiveMsg(){
 
 
 unsigned long __stdcall MessageRecThread(void* pParam){
-	while (1) {
-		if (!ClientEntity.ReceiveMsg())
+	do {
+		if (!ClientEntity.ReceiveMsg()) {
+			cout << "\b\b\n";
 			break;
-	}
-	return 0;
+		}
+	} while (ClientEntity.IsConnected());
+	return 0; 
+}
+
+void ClientPack::destroy() {
+	connEstablished = false;
+	closesocket(connection);
 }
 
 void main() {
@@ -135,10 +143,14 @@ void main() {
 		return;
 	}
 	cout << ">--------------------------------------<\n";
+<<<<<<< HEAD
 	cout << "VChat 1.1\n";
+=======
+	printf("VChat %u.%u\n", version_major, version_minor);
+>>>>>>> Bugs fixed, added version echo
 	cout << "\"A meaningful silence is always better than meaningless words\" - Anonymous\n\n";
 	cout << "Welcome, stranger\n";
-	cout << "Send an empty message to stop the server\n";
+	cout << "Send an empty message to stop the client\n";
 	cout << ">--------------------------------------<\n\n";
 	cout << "Please enter your nickname: ";
 	string locID;
@@ -156,6 +168,7 @@ void main() {
 	while (gets_s(buf)){
 		if (strlen(buf) == 0) {
 			cout << "\nClient stop was initiated manually\n";
+			ClientEntity.destroy();
 			break;
 		}
 		if (!ClientEntity.SendMsg(buf)){
